@@ -44,49 +44,56 @@ def train_classic(model_type, data_path=None, pr_figure_path=None,
          model_type=model_type, pr_figure_path=pr_figure_path)
 
 
-def train_cnn():
+def train_cnn(train_seg_path=None, test_seg_path=None, word_vocab_path=None,
+              pos_vocab_path=None, label_vocab_path=None, sentence_w2v_path=None,
+              word_vocab_start=2, pos_vocab_start=1, w2v_path=None, p2v_path=None,
+              w2v_dim=256, pos_dim=64, max_len=300,
+              model_save_temp_dir=None,
+              output_dir=None,
+              batch_size=128,
+              nb_epoch=5,
+              keep_prob=0.5,
+              word_keep_prob=0.9,
+              pos_keep_prob=0.9):
     # 1.build vocab for train data
-    build_vocab(config.train_seg_path, config.word_vocab_path,
-                config.pos_vocab_path, config.label_vocab_path)
-    word_vocab, pos_vocab, label_vocab = load_vocab(config.word_vocab_path,
-                                                    config.pos_vocab_path,
-                                                    config.label_vocab_path)
+    build_vocab(train_seg_path, word_vocab_path,
+                pos_vocab_path, label_vocab_path)
+    word_vocab, pos_vocab, label_vocab = load_vocab(word_vocab_path,
+                                                    pos_vocab_path,
+                                                    label_vocab_path)
     # 2.build embedding
-    build_word_embedding(config.w2v_path, overwrite=True, sentence_w2v_path=config.sentence_w2v_path,
-                         word_vocab_path=config.word_vocab_path, word_vocab_start=config.word_vocab_start,
-                         w2v_dim=config.w2v_dim)
-    build_pos_embedding(config.p2v_path, overwrite=True, pos_vocab_path=config.pos_vocab_path,
-                        pos_vocab_start=config.pos_vocab_start, pos_dim=config.pos_dim)
-    word_emb, pos_emb = load_emb(config.w2v_path, config.p2v_path)
+    build_word_embedding(w2v_path, overwrite=True, sentence_w2v_path=sentence_w2v_path,
+                         word_vocab_path=word_vocab_path, word_vocab_start=word_vocab_start,
+                         w2v_dim=w2v_dim)
+    build_pos_embedding(p2v_path, overwrite=True, pos_vocab_path=pos_vocab_path,
+                        pos_vocab_start=pos_vocab_start, pos_dim=pos_dim)
+    word_emb, pos_emb = load_emb(w2v_path, p2v_path)
 
     # 3.data reader
-    words, pos, labels = train_reader(config.train_seg_path, word_vocab, pos_vocab, label_vocab)
-    word_test, pos_test = test_reader(config.test_seg_path, word_vocab, pos_vocab, label_vocab)
+    words, pos, labels = train_reader(train_seg_path, word_vocab, pos_vocab, label_vocab)
+    word_test, pos_test = test_reader(test_seg_path, word_vocab, pos_vocab, label_vocab)
     labels_test = None
 
     # clear
-    clear_directory(config.model_save_temp_dir)
+    clear_directory(model_save_temp_dir)
 
     # Division of training, development, and test set
     word_train, word_dev, pos_train, pos_dev, label_train, label_dev = train_test_split(
         words, pos, labels, test_size=0.2, random_state=42)
 
     # init model
-    model = Model(config.max_len, word_emb, pos_emb, label_vocab=label_vocab)
+    model = Model(max_len, word_emb, pos_emb, label_vocab=label_vocab)
     # fit model
     model.fit(word_train, pos_train, label_train,
               word_dev, pos_dev, label_dev,
               word_test, pos_test, labels_test,
-              config.batch_size, config.nb_epoch, config.keep_prob,
-              config.word_keep_prob, config.pos_keep_prob)
+              batch_size, nb_epoch, keep_prob,
+              word_keep_prob, pos_keep_prob)
+    # chose best model
     [p_test, r_test, f_test], nb_epoch = model.get_best_score()
     print('P@test:%f, R@test:%f, F@test:%f, num_best_epoch:%d' % (p_test, r_test, f_test, nb_epoch + 1))
     # save best pred label
-    cmd = 'cp %s/epoch_%d.csv %s/best.csv' % (config.model_save_temp_dir, nb_epoch + 1, config.model_save_dir)
-    print(cmd)
-    os.popen(cmd)
-    # save best model
-    cmd = 'cp %s/model_%d.* %s/' % (config.model_save_temp_dir, nb_epoch + 1, config.model_save_dir)
+    cmd = 'cp %s/epoch_%d.csv %s/best.csv' % (model_save_temp_dir, nb_epoch + 1, output_dir)
     print(cmd)
     os.popen(cmd)
     # clear model
@@ -104,4 +111,10 @@ if __name__ == '__main__':
                       config.pred_thresholds,
                       config.num_classes)
     else:
-        train_cnn()
+        train_cnn(config.train_seg_path, config.test_seg_path, config.word_vocab_path,
+                  config.pos_vocab_path, config.label_vocab_path, config.sentence_w2v_path,
+                  config.word_vocab_start, config.pos_vocab_start, config.w2v_path, config.p2v_path,
+                  model_save_temp_dir=config.model_save_temp_dir,
+                  output_dir=config.output_dir,
+                  batch_size=config.batch_size,
+                  nb_epoch=config.nb_epoch)

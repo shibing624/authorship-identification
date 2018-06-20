@@ -50,11 +50,11 @@ def save_sentence(lines, sentence_path):
     print('save sentence:%s' % sentence_path)
 
 
-def build(train_seg_path, test_seg_path, out_path, w2v_bin_path="w2v.bin"):
+def build(train_seg_path, test_seg_path, out_path=None, w2v_bin_path="w2v.bin",min_count=1):
     sentences = extract_sentence(train_seg_path, test_seg_path, col_sep='\t')
     # train model
     w2v = Word2Vec(sg=1, sentences=sentences,
-                   size=256, window=5, min_count=config.min_count, iter=40)
+                   size=256, window=5, min_count=min_count, iter=40)
     w2v.wv.save_word2vec_format(w2v_bin_path, binary=True)
     print("save %s ok." % w2v_bin_path)
     # test
@@ -72,4 +72,5 @@ if __name__ == '__main__':
     build(config.train_seg_path,
           config.test_seg_path,
           config.sentence_w2v_path,
-          config.sentence_w2v_bin_path)
+          config.sentence_w2v_bin_path,
+          config.min_count)

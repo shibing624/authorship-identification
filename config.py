@@ -18,26 +18,26 @@ num_classes = 4  # num of data label classes
 
 # one of "logistic_regression or random_forest or gbdt or bayes or decision_tree or svm or knn or cnn"
 model_type = "cnn"
-model_save_dir = "output"
+output_dir = "output"
 
 # --- train_w2v_model ---
 # path of train sentence, if this file does not exist,
 # it will be built from train_seg_path data by train_w2v_model.py train
 # word2vec bin path
-sentence_w2v_bin_path = model_save_dir + "/sentence_w2v.bin"
+sentence_w2v_bin_path = output_dir + "/sentence_w2v.bin"
 # word_dict saved path
-sentence_w2v_path = model_save_dir + "/sentence_w2v.pkl"
+sentence_w2v_path = output_dir + "/sentence_w2v.pkl"
 
 # --- train ---
-word_vocab_path = model_save_dir + "/word_vocab.pkl"
-pos_vocab_path = model_save_dir + "/pos_vocab.pkl"
-label_vocab_path = model_save_dir + "/label_vocab.pkl"
+word_vocab_path = output_dir + "/word_vocab.pkl"
+pos_vocab_path = output_dir + "/pos_vocab.pkl"
+label_vocab_path = output_dir + "/label_vocab.pkl"
 word_vocab_start = 2
 pos_vocab_start = 1
 
 # embedding
-w2v_path = model_save_dir + "/w2v.pkl"
-p2v_path = model_save_dir + "/p2v.pkl"  # pos vector path
+w2v_path = output_dir + "/w2v.pkl"
+p2v_path = output_dir + "/p2v.pkl"  # pos vector path
 w2v_dim = 256
 pos_dim = 64
 
@@ -52,10 +52,10 @@ pos_keep_prob = 0.9
 
 # directory to save the trained model
 # create a new directory if the dir does not exist
-model_save_temp_dir = "output/temp_output_model"
-best_result_path = model_save_dir + "/best_result.csv"
+model_save_temp_dir = "output/save_model"
+best_result_path = output_dir + "/best_result.csv"
 
-if not os.path.exists(model_save_dir):
-    os.makedirs(model_save_dir)
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 if not os.path.exists(model_save_temp_dir):
     os.mkdir(model_save_temp_dir)
