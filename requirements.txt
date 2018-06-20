@@ -1,0 +1,3 @@
+jieba
+scikit-learn
+tensorflow
