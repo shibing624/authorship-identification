@@ -17,13 +17,12 @@ pred_thresholds = 0.5
 num_classes = 4  # num of data label classes
 
 # one of "logistic_regression or random_forest or gbdt or bayes or decision_tree or svm or knn or cnn"
-model_type = "logistic_regression"
+model_type = "cnn"
 model_save_dir = "output"
 
 # --- train_w2v_model ---
 # path of train sentence, if this file does not exist,
 # it will be built from train_seg_path data by train_w2v_model.py train
-sentence_path = model_save_dir + "/sentence.txt"
 # word2vec bin path
 sentence_w2v_bin_path = model_save_dir + "/sentence_w2v.bin"
 # word_dict saved path
@@ -44,9 +43,9 @@ pos_dim = 64
 
 # param
 max_len = 300  # max len words of sentence
-min_count = 5  # word will not be added to dictionary if it's frequency is less than min_count
+min_count = 3  # word will not be added to dictionary if it's frequency is less than min_count
 batch_size = 128
-nb_epoch = 10
+nb_epoch = 5
 keep_prob = 0.5
 word_keep_prob = 0.9
 pos_keep_prob = 0.9

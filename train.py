@@ -52,8 +52,11 @@ def train_cnn():
                                                     config.pos_vocab_path,
                                                     config.label_vocab_path)
     # 2.build embedding
-    build_word_embedding(config.w2v_path, overwrite=True)
-    build_pos_embedding(config.p2v_path, overwrite=True)
+    build_word_embedding(config.w2v_path, overwrite=True, sentence_w2v_path=config.sentence_w2v_path,
+                         word_vocab_path=config.word_vocab_path, word_vocab_start=config.word_vocab_start,
+                         w2v_dim=config.w2v_dim)
+    build_pos_embedding(config.p2v_path, overwrite=True, pos_vocab_path=config.pos_vocab_path,
+                        pos_vocab_start=config.pos_vocab_start, pos_dim=config.pos_dim)
     word_emb, pos_emb = load_emb(config.w2v_path, config.p2v_path)
 
     # 3.data reader
@@ -62,7 +65,7 @@ def train_cnn():
     labels_test = None
 
     # clear
-    clear_directory(config.model_save_dir)
+    clear_directory(config.model_save_temp_dir)
 
     # Division of training, development, and test set
     word_train, word_dev, pos_train, pos_dev, label_train, label_dev = train_test_split(
@@ -86,8 +89,6 @@ def train_cnn():
     cmd = 'cp %s/model_%d.* %s/' % (config.model_save_temp_dir, nb_epoch + 1, config.model_save_dir)
     print(cmd)
     os.popen(cmd)
-    # model.save('%s/cnn_classification_model' % config.model_save_dir)
-
     # clear model
     model.clear_model()
 

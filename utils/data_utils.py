@@ -2,8 +2,9 @@
 # Author: XuMing <xuming624@qq.com>
 # Brief:
 from collections import defaultdict
-import os
+
 import numpy as np
+
 
 def build_dict(items, start=0, sort=True,
                min_count=1, lower=False):
@@ -38,35 +39,6 @@ def build_dict(items, start=0, sort=True,
             index = i + start
             result[item] = index
     return result
-
-
-def build_dict(data_dir,
-               save_path,
-               use_col=0,
-               cutoff_fre=0,
-               insert_extra_words=[]):
-    values = defaultdict(int)
-
-    for file_name in os.listdir(data_dir):
-        file_path = os.path.join(data_dir, file_name)
-        if not os.path.isfile(file_path):
-            continue
-        with open(file_path, "r") as fdata:
-            for line in fdata:
-                line_splits = line.strip().split("\t")
-                if len(line_splits) < use_col: continue
-                for w in line_splits[use_col].split():
-                    values[w] += 1
-
-    with open(save_path, "w") as f:
-        for w in insert_extra_words:
-            f.write("%s\t-1\n" % (w))
-
-        for v, count in sorted(
-                values.iteritems(), key=lambda x: x[1], reverse=True):
-            if count < cutoff_fre:
-                break
-            f.write("%s\t%d\n" % (v, count))
 
 
 def load_dict(dict_path):
@@ -115,7 +87,6 @@ def map_item2id(items, vocab, max_len, non_word=0, lower=False):
 
 
 def read_lines(path):
-    # path = os.path.join('..', path)
     lines = []
     with open(path, mode='r', encoding='utf-8') as f:
         for line in f:
