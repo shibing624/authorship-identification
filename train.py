@@ -88,7 +88,7 @@ def train_cnn(train_seg_path=None, test_seg_path=None, word_vocab_path=None,
               word_dev, pos_dev, label_dev,
               word_test, pos_test, labels_test,
               batch_size, nb_epoch, keep_prob,
-              word_keep_prob, pos_keep_prob)
+              word_keep_prob, pos_keep_prob, model_save_temp_dir)
     # chose best model
     [p_test, r_test, f_test], nb_epoch = model.get_best_score()
     print('P@test:%f, R@test:%f, F@test:%f, num_best_epoch:%d' % (p_test, r_test, f_test, nb_epoch + 1))
