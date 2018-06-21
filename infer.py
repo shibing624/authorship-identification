@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # Author: XuMing <xuming624@qq.com>
 # Brief:
-from sklearn.feature_extraction.text import TfidfVectorizer
 import time
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 import config
-from utils.io_utils import load_pkl
-from models.reader import data_reader
 from models.cnn_model import Model
-from models.reader import load_emb
-from models.reader import load_vocab
+from models.reader import data_reader
 from models.reader import test_reader
+from utils.io_utils import load_pkl
 from utils.tensor_utils import get_ckpt_path
 
 label_revserv_dict = {0: '人类作者',
@@ -56,12 +56,11 @@ def save(label_pred, test_ids=[], pred_save_path=None):
 def infer_cnn(data_path, model_path,
               word_vocab_path, pos_vocab_path, label_vocab_path,
               word_emb_path, pos_emb_path, batch_size, pred_save_path=None):
-    word_vocab, pos_vocab, label_vocab = load_vocab(word_vocab_path,
-                                                    pos_vocab_path,
-                                                    label_vocab_path)
-    word_emb, pos_emb = load_emb(word_emb_path, pos_emb_path)
+    # init dict
+    word_vocab, pos_vocab, label_vocab = load_pkl(word_vocab_path), load_pkl(pos_vocab_path), load_pkl(label_vocab_path)
+    word_emb, pos_emb = load_pkl(word_emb_path), load_pkl(pos_emb_path)
     word_test, pos_test = test_reader(data_path, word_vocab, pos_vocab, label_vocab)
-
+    # init model
     model = Model(config.max_len, word_emb, pos_emb, label_vocab=label_vocab)
     ckpt_path = get_ckpt_path(model_path)
     if ckpt_path:

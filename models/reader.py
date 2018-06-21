@@ -13,12 +13,13 @@ from utils.io_utils import load_pkl
 
 
 def _load_data(path, col_sep='\t', word_sep=' ', pos_sep='/'):
-    lines = read_lines(path)
+    lines = read_lines(path, col_sep)
     word_lst = []
     pos_lst = []
     label_lst = []
     for line in lines:
         if col_sep not in line:
+            print('[warning][_load_data] col_sep not in text:', line)
             continue
         index = line.index(col_sep)
         label = line[:index]
@@ -59,24 +60,14 @@ def build_vocab(train_path, word_vocab_path, pos_vocab_path, label_vocab_path,
     label_vocab = build_dict(label_types)
     # save
     dump_pkl(label_vocab, label_vocab_path, overwrite=True)
-
-
-def load_vocab(word_vocab_path, pos_vocab_path, label_vocab_path):
-    """
-    load vocab dict
-    :param word_vocab_path:
-    :param pos_vocab_path:
-    :param label_vocab_path:
-    :return:
-    """
-    return load_pkl(word_vocab_path), load_pkl(pos_vocab_path), load_pkl(label_vocab_path)
+    return word_vocab, pos_vocab, label_vocab
 
 
 def build_word_embedding(path, overwrite=False, sentence_w2v_path=None,
                          word_vocab_path=None, word_vocab_start=2, w2v_dim=256):
     if os.path.exists(path) and not overwrite:
         print("already has $s and use it." % path)
-        return
+        return load_pkl(path)
     w2v_dict_full = load_pkl(sentence_w2v_path)
     word_vocab = load_pkl(word_vocab_path)
     word_vocab_count = len(w2v_dict_full) + word_vocab_start
@@ -89,34 +80,27 @@ def build_word_embedding(path, overwrite=False, sentence_w2v_path=None,
             random_vec = np.random.uniform(-0.25, 0.25, size=(w2v_dim,)).astype('float32')
             word_emb[index, :] = random_vec
     # save
-    dump_pkl(word_emb, path)
+    dump_pkl(word_emb, path, overwrite=True)
+    return word_emb
 
 
 def build_pos_embedding(path, overwrite=False,
                         pos_vocab_path=None, pos_vocab_start=1, pos_dim=64):
     if os.path.exists(path) and not overwrite:
-        return
+        print("already has $s and use it." % path)
+        return load_pkl(path)
     pos_vocab = load_pkl(pos_vocab_path)
     pos_vocab_count = len(pos_vocab) + pos_vocab_start
     pos_emb = np.random.normal(size=(pos_vocab_count, pos_dim,)).astype('float32')
     for i in range(pos_vocab_start):
         pos_emb[i, :] = 0.
     # save
-    dump_pkl(pos_emb, path)
-
-
-def load_emb(w2v_path, p2v_path):
-    """
-    加载词向量、词性向量
-    :param w2v_path:
-    :param p2v_path:
-    :return:
-    """
-    return load_pkl(w2v_path), load_pkl(p2v_path)
+    dump_pkl(pos_emb, path, overwrite=True)
+    return pos_emb
 
 
 def _get_word_arr(word_pos_vocab, word_vocab, pos_vocab,
-                  pos_sep='/',max_len=300):
+                  pos_sep='/', max_len=300):
     """
     获取词序列
     :param word_pos_vocab: list，句子和词性
@@ -163,6 +147,9 @@ def _init_data(lines, word_vocab, pos_vocab, label_vocab,
     instance_index = 0
     # set data
     for i in range(data_count):
+        if col_sep not in lines[i]:
+            print('[warning][_init_data] col_sep not in text:', lines[i])
+            continue
         index = lines[i].index(col_sep)
         label = lines[i][:index]
         if pos_sep in label:
@@ -187,7 +174,7 @@ def train_reader(path, word_vocab, pos_vocab, label_vocab, col_sep='\t'):
     :param label_vocab:
     :return:
     """
-    return _init_data(read_lines(path),
+    return _init_data(read_lines(path, col_sep),
                       word_vocab, pos_vocab, label_vocab, col_sep=col_sep)
 
 
@@ -199,7 +186,7 @@ def test_reader(path, word_vocab, pos_vocab, label_vocab, col_sep='\t'):
     :param label_vocab:
     :return:
     """
-    sentences, pos, _ = _init_data(read_lines(path),
+    sentences, pos, _ = _init_data(read_lines(path, col_sep),
                                    word_vocab, pos_vocab, label_vocab, col_sep=col_sep)
     return sentences, pos
 

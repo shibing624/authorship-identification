@@ -47,7 +47,7 @@ def train_classic(model_type, data_path=None, pr_figure_path=None,
 def train_cnn(train_seg_path=None, test_seg_path=None, word_vocab_path=None,
               pos_vocab_path=None, label_vocab_path=None, sentence_w2v_path=None,
               word_vocab_start=2, pos_vocab_start=1, w2v_path=None, p2v_path=None,
-              w2v_dim=256, pos_dim=64, max_len=300,
+              w2v_dim=256, pos_dim=64, max_len=300, min_count=5,
               model_save_temp_dir=None,
               output_dir=None,
               batch_size=128,
@@ -56,19 +56,14 @@ def train_cnn(train_seg_path=None, test_seg_path=None, word_vocab_path=None,
               word_keep_prob=0.9,
               pos_keep_prob=0.9):
     # 1.build vocab for train data
-    build_vocab(train_seg_path, word_vocab_path,
-                pos_vocab_path, label_vocab_path)
-    word_vocab, pos_vocab, label_vocab = load_vocab(word_vocab_path,
-                                                    pos_vocab_path,
-                                                    label_vocab_path)
+    word_vocab, pos_vocab, label_vocab = build_vocab(train_seg_path, word_vocab_path,
+                pos_vocab_path, label_vocab_path, min_count=min_count)
     # 2.build embedding
-    build_word_embedding(w2v_path, overwrite=True, sentence_w2v_path=sentence_w2v_path,
+    word_emb = build_word_embedding(w2v_path, overwrite=True, sentence_w2v_path=sentence_w2v_path,
                          word_vocab_path=word_vocab_path, word_vocab_start=word_vocab_start,
                          w2v_dim=w2v_dim)
-    build_pos_embedding(p2v_path, overwrite=True, pos_vocab_path=pos_vocab_path,
+    pos_emb = build_pos_embedding(p2v_path, overwrite=True, pos_vocab_path=pos_vocab_path,
                         pos_vocab_start=pos_vocab_start, pos_dim=pos_dim)
-    word_emb, pos_emb = load_emb(w2v_path, p2v_path)
-
     # 3.data reader
     words, pos, labels = train_reader(train_seg_path, word_vocab, pos_vocab, label_vocab)
     word_test, pos_test = test_reader(test_seg_path, word_vocab, pos_vocab, label_vocab)
@@ -114,6 +109,7 @@ if __name__ == '__main__':
         train_cnn(config.train_seg_path, config.test_seg_path, config.word_vocab_path,
                   config.pos_vocab_path, config.label_vocab_path, config.sentence_w2v_path,
                   config.word_vocab_start, config.pos_vocab_start, config.w2v_path, config.p2v_path,
+                  min_count=config.min_count,
                   model_save_temp_dir=config.model_save_temp_dir,
                   output_dir=config.output_dir,
                   batch_size=config.batch_size,

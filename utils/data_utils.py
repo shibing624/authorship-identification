@@ -86,11 +86,14 @@ def map_item2id(items, vocab, max_len, non_word=0, lower=False):
     return arr
 
 
-def read_lines(path):
+def read_lines(path, col_sep=None):
     lines = []
     with open(path, mode='r', encoding='utf-8') as f:
         for line in f:
             line = line.strip()
-            if line:
+            if col_sep:
+                if col_sep in line:
+                    lines.append(line)
+            else:
                 lines.append(line)
     return lines

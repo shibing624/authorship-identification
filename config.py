@@ -43,7 +43,7 @@ pos_dim = 64
 
 # param
 max_len = 300  # max len words of sentence
-min_count = 3  # word will not be added to dictionary if it's frequency is less than min_count
+min_count = 5  # word will not be added to dictionary if it's frequency is less than min_count
 batch_size = 128
 nb_epoch = 5
 keep_prob = 0.5
