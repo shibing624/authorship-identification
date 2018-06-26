@@ -99,7 +99,7 @@ def linguistics(data_set, word_sep=' '):
         feature = [float(i) for i in feature]
         features.append(feature)
         if len(feature) < 35:
-            print(len(feature), line)
+            print('error', len(feature), line)
     features_np = np.array(features, dtype=float)
     X = sparse.csr_matrix(features_np)
     return X, None
@@ -127,49 +127,44 @@ def _get_text_feature(word_pos_list):
     word_no_pos_len_list = [len(w.split('/')[0]) for w in word_pos_list]
 
     num_char = sum(len(w.split('/')[0]) for w in word_pos_list)  # 字总数
-    features.append(num_char)  # 字总数
+    features.append(num_char)
     average_word_len = float(num_char / num_word)
     features.append(average_word_len)  # 单词平均长度
 
     # 利用collections库中的Counter模块，可以很轻松地得到一个由单词和词频组成的字典。
     len_counts = collections.Counter(word_no_pos_len_list)
-    if len_counts.get(1):
-        features.append(len_counts.get(1))  # 1字词个数
-        features.append(float(len_counts.get(1) / num_word))  # 1字词占比
-    else:
-        features.append(0)
-        features.append(0)
-    if len_counts.get(2):
-        features.append(len_counts.get(2))  # 2字词个数
-        features.append(float(len_counts.get(2) / num_word))  # 2字词占比
-    else:
-        features.append(0)
-        features.append(0)
-    if len_counts.get(3):
-        features.append(len_counts.get(3))  # 3字词个数
-        features.append(float(len_counts.get(3) / num_word))  # 3字词占比
-    else:
-        features.append(0)
-        features.append(0)
-    if len_counts.get(4):
-        features.append(len_counts.get(4))  # 4字词个数
-        features.append(float(len_counts.get(4) / num_word))  # 4字词占比
-    else:
-        features.append(0)
-        features.append(0)
-    if num_sentence_long > 0:
-        features.append(num_sentence_long)  # 句子数（长句）
-        features.append(float(num_char / num_sentence_long))  # 句子平均字数
-    else:
-        features.append(0)
-        features.append(0)
-    if num_sentence_short > 0:
-        features.append(num_sentence_short)  # 句子数(短句)
-        features.append(float(num_char / num_sentence_short))  # 句子平均字数（短句）
-    else:
-        features.append(0)
-        features.append(0)
+
+    # 1到4字词个数，1到4字词占比
+    for i in range(1, 5):
+        features.append(_word_count(len_counts, num=i) if len_counts.get(i) else 0)
+        features.append(_word_count_ratio(len_counts, num=i, num_word=num_word) if len_counts.get(i) else 0)
+    features.append(num_sentence_long if num_sentence_long > 0 else 0)  # 句子数（长句）
+    features.append(float(num_char / num_sentence_long) if num_sentence_long > 0 else 0)  # 句子平均字数
+
+    features.append(num_sentence_short if num_sentence_short > 0 else 0)  # 句子数(短句)
+    features.append(float(num_char / num_sentence_short) if num_sentence_short > 0 else 0)  # 句子平均字数（短句）
     return features
+
+
+def _word_count(counter, num=1):
+    """
+    1字词个数
+    :param counter:
+    :param num:
+    :return:
+    """
+    return counter.get(num)
+
+
+def _word_count_ratio(counter, num=1, num_word=1):
+    """
+    1字词占比
+    :param counter:
+    :param num:
+    :param num_word:
+    :return:
+    """
+    return float(counter.get(num) / num_word)
 
 
 def all_human_feature(data_set):
@@ -179,8 +174,11 @@ def all_human_feature(data_set):
     :return:
     """
     tfidf_feature, vocab = tfidf(data_set)
+    tfidf_feature_np = tfidf_feature.toarray()
     linguistics_feature, _ = linguistics(data_set)
-    data_feature = np.hstack((tfidf_feature, linguistics_feature))
+    linguistics_feature_np = linguistics_feature.toarray()
+
+    data_feature = np.hstack((tfidf_feature_np, linguistics_feature_np))
     return data_feature, vocab
 
 
@@ -207,10 +205,17 @@ def get_feature(data_set, feature_type='tf', is_infer=False, infer_vectorizer_pa
             vectorizer = TfidfVectorizer(analyzer='char', vocabulary=vocab)
             return vectorizer.fit_transform(data_set)
         elif feature_type == "linguistics":
-            feature_data, _ = linguistics(data_set)
-            return feature_data
+            data_feature, _ = linguistics(data_set)
+            return data_feature
         elif feature_type == 'all':
-            return all_human_feature(data_set)
+            vocab = load_pkl(infer_vectorizer_path)
+            vectorizer = TfidfVectorizer(analyzer='char', vocabulary=vocab)
+            tfidf_feature_np = vectorizer.fit_transform(data_set).toarray()
+            linguistics_feature, _ = linguistics(data_set)
+            linguistics_feature_np = linguistics_feature.toarray()
+
+            data_feature = np.hstack((tfidf_feature_np, linguistics_feature_np))
+            return data_feature
     else:
         if feature_type == "tf":
             return tf(data_set)
