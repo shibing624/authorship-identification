@@ -14,8 +14,6 @@ from models.reader import build_pos_embedding
 from models.reader import build_vocab
 from models.reader import build_word_embedding
 from models.reader import data_reader
-from models.reader import load_emb
-from models.reader import load_vocab
 from models.reader import test_reader
 from models.reader import train_reader
 from utils.io_utils import dump_pkl

@@ -16,8 +16,8 @@ pred_save_path = "output/validation_seg_result.txt"  # infer data result
 pred_thresholds = 0.5
 num_classes = 4  # num of data label classes
 
-# one of "logistic_regression or random_forest or gbdt or bayes or decision_tree or svm or knn or cnn"
-model_type = "cnn"
+# one of "logistic_regression, random_forest, gbdt, bayes, decision_tree, svm, knn, xgboost, mlp, cnn"
+model_type = "logistic_regression"
 output_dir = "output"
 
 # --- train_w2v_model ---

@@ -9,7 +9,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
-
+from sklearn.neural_network import MLPClassifier
 
 def get_model(model_type):
     if model_type == "logistic_regression":
@@ -28,5 +28,7 @@ def get_model(model_type):
         model = XGBClassifier  # 快，准确率高。
     elif model_type == "svm":
         model = LinearSVC  # 快，准确率高，val mean acc:0.84。
+    elif model_type == 'mlp':
+        model = MLPClassifier # 耗时，准确率高
 
     return model()
