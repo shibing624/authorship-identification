@@ -6,8 +6,7 @@ from gensim.models import Word2Vec
 from gensim.models.keyedvectors import KeyedVectors
 
 import config
-from utils.data_utils import read_lines
-from utils.io_utils import dump_pkl
+from utils.data_utils import read_lines, dump_pkl
 
 
 def get_sentence(sentence_tag, word_sep=' ', pos_sep='/'):
@@ -50,7 +49,7 @@ def save_sentence(lines, sentence_path):
     print('save sentence:%s' % sentence_path)
 
 
-def build(train_seg_path, test_seg_path, out_path=None, w2v_bin_path="w2v.bin",min_count=1):
+def build(train_seg_path, test_seg_path, out_path=None, w2v_bin_path="w2v.bin", min_count=1):
     sentences = extract_sentence(train_seg_path, test_seg_path, col_sep='\t')
     # train model
     w2v = Word2Vec(sg=1, sentences=sentences,

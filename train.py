@@ -9,29 +9,29 @@ from models.classic_model import get_model
 from models.cnn_model import Model
 from models.evaluate import eval
 from models.feature import label_encoder
-from models.feature import tfidf
+from models.feature import get_feature
 from models.reader import build_pos_embedding
 from models.reader import build_vocab
 from models.reader import build_word_embedding
 from models.reader import data_reader
 from models.reader import test_reader
 from models.reader import train_reader
-from utils.io_utils import dump_pkl
+from utils.data_utils import dump_pkl
 from utils.io_utils import clear_directory
 
 
 def train_classic(model_type, data_path=None, pr_figure_path=None,
                   model_save_path=None, vectorizer_path=None, col_sep=',',
-                  thresholds=0.5, num_classes=2):
+                  thresholds=0.5, num_classes=2, feature_type='tf'):
     data_content, data_lbl = data_reader(data_path, col_sep)
     # data feature
-    data_tfidf, vocab = tfidf(data_content)
+    data_feature, vocab = get_feature(data_content, feature_type=feature_type)
     # save data feature
     dump_pkl(vocab, vectorizer_path, overwrite=True)
     # label
     data_label = label_encoder(data_lbl)
     X_train, X_val, y_train, y_val = train_test_split(
-        data_tfidf, data_label, test_size=0.2)
+        data_feature, data_label, test_size=0.2)
     model = get_model(model_type)
     # fit
     model.fit(X_train, y_train)
@@ -55,13 +55,13 @@ def train_cnn(train_seg_path=None, test_seg_path=None, word_vocab_path=None,
               pos_keep_prob=0.9):
     # 1.build vocab for train data
     word_vocab, pos_vocab, label_vocab = build_vocab(train_seg_path, word_vocab_path,
-                pos_vocab_path, label_vocab_path, min_count=min_count)
+                                                     pos_vocab_path, label_vocab_path, min_count=min_count)
     # 2.build embedding
     word_emb = build_word_embedding(w2v_path, overwrite=True, sentence_w2v_path=sentence_w2v_path,
-                         word_vocab_path=word_vocab_path, word_vocab_start=word_vocab_start,
-                         w2v_dim=w2v_dim)
+                                    word_vocab_path=word_vocab_path, word_vocab_start=word_vocab_start,
+                                    w2v_dim=w2v_dim)
     pos_emb = build_pos_embedding(p2v_path, overwrite=True, pos_vocab_path=pos_vocab_path,
-                        pos_vocab_start=pos_vocab_start, pos_dim=pos_dim)
+                                  pos_vocab_start=pos_vocab_start, pos_dim=pos_dim)
     # 3.data reader
     words, pos, labels = train_reader(train_seg_path, word_vocab, pos_vocab, label_vocab)
     word_test, pos_test = test_reader(test_seg_path, word_vocab, pos_vocab, label_vocab)
@@ -102,7 +102,8 @@ if __name__ == '__main__':
                       config.vectorizer_path,
                       config.col_sep,
                       config.pred_thresholds,
-                      config.num_classes)
+                      config.num_classes,
+                      config.feature_type)
     else:
         train_cnn(config.train_seg_path, config.test_seg_path, config.word_vocab_path,
                   config.pos_vocab_path, config.label_vocab_path, config.sentence_w2v_path,

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: XuMing <xuming624@qq.com>
 # Brief:
+import os
+import pickle
 from collections import defaultdict
 
 import numpy as np
@@ -97,3 +99,75 @@ def read_lines(path, col_sep=None):
             else:
                 lines.append(line)
     return lines
+
+
+def write_vocab(vocab, filename):
+    """Writes a vocab to a file
+
+    Writes one word per line.
+
+    Args:
+        vocab: iterable that yields word
+        filename: path to vocab file
+
+    Returns:
+        write a word per line
+
+    """
+    print("Writing vocab...")
+    with open(filename, "w", encoding='utf-8') as f:
+        for i, word in enumerate(vocab):
+            if i != len(vocab) - 1:
+                f.write("{}\n".format(word))
+            else:
+                f.write(word)
+    print("- write to {} done. {} tokens".format(filename, len(vocab)))
+
+
+def load_vocab(filename):
+    """Loads vocab from a file
+
+    Args:
+        filename: (string) the format of the file must be one word per line.
+
+    Returns:
+        d: dict[word] = index
+
+    """
+    try:
+        d = dict()
+        with open(filename, 'r', encoding='utf-8') as f:
+            for idx, word in enumerate(f):
+                word = word.strip()
+                d[word] = idx
+
+    except IOError:
+        raise IOError(filename)
+    return d
+
+
+def load_pkl(pkl_path):
+    """
+    加载词典文件
+    :param pkl_path:
+    :return:
+    """
+    with open(pkl_path, 'rb') as f:
+        result = pickle.load(f)
+    return result
+
+
+def dump_pkl(vocab, pkl_path, overwrite=False):
+    """
+    存储文件
+    :param pkl_path:
+    :param overwrite:
+    :return:
+    """
+    if pkl_path and os.path.exists(pkl_path) and not overwrite:
+        return
+    if pkl_path:
+        with open(pkl_path, 'wb') as f:
+            # pickle.dump(vocab, f, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(vocab, f, protocol=0)
+        print("save %s ok." % pkl_path)

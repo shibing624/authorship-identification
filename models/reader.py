@@ -5,11 +5,9 @@ import os
 
 import numpy as np
 
-from utils.data_utils import build_dict
+from utils.data_utils import build_dict, load_pkl, dump_pkl
 from utils.data_utils import map_item2id
-from utils.data_utils import read_lines
-from utils.io_utils import dump_pkl
-from utils.io_utils import load_pkl
+from utils.data_utils import read_lines, write_vocab, load_vocab
 
 
 def _load_data(path, col_sep='\t', word_sep=' ', pos_sep='/'):
@@ -18,9 +16,6 @@ def _load_data(path, col_sep='\t', word_sep=' ', pos_sep='/'):
     pos_lst = []
     label_lst = []
     for line in lines:
-        if col_sep not in line:
-            print('[warning][_load_data] col_sep not in text:', line)
-            continue
         index = line.index(col_sep)
         label = line[:index]
         if pos_sep in label:
@@ -50,16 +45,19 @@ def build_vocab(train_path, word_vocab_path, pos_vocab_path, label_vocab_path,
     word_vocab = build_dict(word_lst, start=word_vocab_start,
                             min_count=min_count, sort=True, lower=True)
     # save
-    dump_pkl(word_vocab, word_vocab_path, overwrite=True)
+    write_vocab(word_vocab, word_vocab_path)
+
     # pos vocab
     pos_vocab = build_dict(pos_lst, start=pos_vocab_start, sort=True, lower=False)
     # save
-    dump_pkl(pos_vocab, pos_vocab_path, overwrite=True)
+    write_vocab(pos_vocab, pos_vocab_path)
+
     # label vocab
     label_types = [str(i) for i in label_lst]
     label_vocab = build_dict(label_types)
     # save
-    dump_pkl(label_vocab, label_vocab_path, overwrite=True)
+    write_vocab(label_vocab, label_vocab_path)
+
     return word_vocab, pos_vocab, label_vocab
 
 
@@ -68,8 +66,8 @@ def build_word_embedding(path, overwrite=False, sentence_w2v_path=None,
     if os.path.exists(path) and not overwrite:
         print("already has $s and use it." % path)
         return load_pkl(path)
+    word_vocab = load_vocab(word_vocab_path)
     w2v_dict_full = load_pkl(sentence_w2v_path)
-    word_vocab = load_pkl(word_vocab_path)
     word_vocab_count = len(w2v_dict_full) + word_vocab_start
     word_emb = np.zeros((word_vocab_count, w2v_dim), dtype='float32')
     for word in word_vocab:
@@ -89,7 +87,7 @@ def build_pos_embedding(path, overwrite=False,
     if os.path.exists(path) and not overwrite:
         print("already has $s and use it." % path)
         return load_pkl(path)
-    pos_vocab = load_pkl(pos_vocab_path)
+    pos_vocab = load_vocab(pos_vocab_path)
     pos_vocab_count = len(pos_vocab) + pos_vocab_start
     pos_emb = np.random.normal(size=(pos_vocab_count, pos_dim,)).astype('float32')
     for i in range(pos_vocab_start):
@@ -147,9 +145,6 @@ def _init_data(lines, word_vocab, pos_vocab, label_vocab,
     instance_index = 0
     # set data
     for i in range(data_count):
-        if col_sep not in lines[i]:
-            print('[warning][_init_data] col_sep not in text:', lines[i])
-            continue
         index = lines[i].index(col_sep)
         label = lines[i][:index]
         if pos_sep in label:
@@ -202,17 +197,24 @@ def data_reader(path, col_sep=','):
             line_split = line.split(col_sep, 1)
             if line_split and len(line_split) > 1:
                 # train data
-                data = line_split[word_col].strip()
-                content = _get_content_words(data)
+                content = line_split[word_col].strip()
                 label = line_split[lbl_col].strip()
                 contents.append(content)
                 labels.append(label)
     return contents, labels
 
 
-def _get_content_words(text, word_sep=' ', pos_sep='/'):
+def get_content_words(text, word_sep=' ', pos_sep='/'):
     content = ''
     for word in text.split(word_sep):
         if pos_sep in word:
             content += word.split(pos_sep)[0]
     return content
+
+
+def get_contents_words(contents, word_sep=' ', pos_sep='/'):
+    return [get_content_words(content, word_sep, pos_sep) for content in contents]
+
+
+def get_sentence_symbol(sentence_symbol_path='data/sentence_symbol.txt'):
+    return [word for word in open(sentence_symbol_path, 'r', encoding='utf-8').read().split()]

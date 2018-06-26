@@ -3,14 +3,13 @@
 # Brief:
 import time
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-
 import config
 from models.cnn_model import Model
 from models.reader import data_reader
 from models.reader import test_reader
-from utils.io_utils import load_pkl
+from utils.data_utils import load_vocab, load_pkl
 from utils.tensor_utils import get_ckpt_path
+from models.feature import get_feature
 
 label_revserv_dict = {0: '人类作者',
                       1: '机器作者',
@@ -20,15 +19,13 @@ label_revserv_dict = {0: '人类作者',
 
 def infer_classic(model_save_path, test_data_path, thresholds=0.5,
                   pred_save_path=None, vectorizer_path=None, col_sep=',',
-                  num_classes=2, model_type='svm'):
+                  num_classes=2, model_type='svm', feature_type='tf'):
     # load model
     model = load_pkl(model_save_path)
     # load data content
     data_set, test_ids = data_reader(test_data_path, col_sep)
     # data feature
-    vocab = load_pkl(vectorizer_path)
-    vectorizer = TfidfVectorizer(analyzer='char', vocabulary=vocab)
-    data_feature = vectorizer.fit_transform(data_set)
+    data_feature = get_feature(data_set, feature_type, is_infer=True, infer_vectorizer_path=vectorizer_path)
     if num_classes == 2 and model_type != 'svm':
         # binary classification
         label_pred_probas = model.predict_proba(data_feature)[:, 1]
@@ -57,7 +54,8 @@ def infer_cnn(data_path, model_path,
               word_vocab_path, pos_vocab_path, label_vocab_path,
               word_emb_path, pos_emb_path, batch_size, pred_save_path=None):
     # init dict
-    word_vocab, pos_vocab, label_vocab = load_pkl(word_vocab_path), load_pkl(pos_vocab_path), load_pkl(label_vocab_path)
+    word_vocab, pos_vocab, label_vocab = load_vocab(word_vocab_path), load_vocab(pos_vocab_path), load_vocab(
+        label_vocab_path)
     word_emb, pos_emb = load_pkl(word_emb_path), load_pkl(pos_emb_path)
     word_test, pos_test = test_reader(data_path, word_vocab, pos_vocab, label_vocab)
     # init model
@@ -84,7 +82,8 @@ if __name__ == "__main__":
                       config.vectorizer_path,
                       config.col_sep,
                       config.num_classes,
-                      config.model_type)
+                      config.model_type,
+                      config.feature_type)
     else:
         infer_cnn(config.test_seg_path,
                   config.model_save_temp_dir,
