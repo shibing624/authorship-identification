@@ -2,20 +2,22 @@
 # Author: XuMing <xuming624@qq.com>
 # Brief:
 import os
+
 from sklearn.model_selection import train_test_split
 
 import config
 from models.classic_model import get_model
 from models.cnn_model import Model
-from models.evaluate import eval
-from models.feature import label_encoder
+from models.evaluate import eval, simple_evaluate
 from models.feature import get_feature
+from models.feature import label_encoder
 from models.reader import build_pos_embedding
 from models.reader import build_vocab
 from models.reader import build_word_embedding
 from models.reader import data_reader
 from models.reader import test_reader
 from models.reader import train_reader
+from models.stack_model import XGBLR
 from utils.data_utils import dump_pkl
 from utils.io_utils import clear_directory
 
@@ -93,8 +95,45 @@ def train_cnn(train_seg_path=None, test_seg_path=None, word_vocab_path=None,
     model.clear_model()
 
 
+def train_xgboost_lr(data_path,
+                     vectorizer_path=None, xgblr_xgb_model_path=None, xgblr_lr_model_path=None,
+                     feature_encoder_path=None, feature_type='tfidf', col_sep='\t'):
+    data_content, data_lbl = data_reader(data_path, col_sep)
+    # data feature
+    data_feature, vocab = get_feature(data_content, feature_type=feature_type)
+    # save data feature
+    dump_pkl(vocab, vectorizer_path, overwrite=True)
+    # label
+    data_label = label_encoder(data_lbl)
+    X_train, X_val, y_train, y_val = train_test_split(
+        data_feature, data_label, test_size=0.2)
+    model = XGBLR(xgblr_xgb_model_path, xgblr_lr_model_path, feature_encoder_path)
+    # fit
+    model.train_model(X_train, y_train)
+    # evaluate
+    label_pred = model.predict(X_val)
+    simple_evaluate(y_val, label_pred)
+
+
 if __name__ == '__main__':
-    if config.model_type != 'cnn':
+    if config.model_type == 'cnn':
+        train_cnn(config.train_seg_path, config.test_seg_path, config.word_vocab_path,
+                  config.pos_vocab_path, config.label_vocab_path, config.sentence_w2v_path,
+                  config.word_vocab_start, config.pos_vocab_start, config.w2v_path, config.p2v_path,
+                  min_count=config.min_count,
+                  model_save_temp_dir=config.model_save_temp_dir,
+                  output_dir=config.output_dir,
+                  batch_size=config.batch_size,
+                  nb_epoch=config.nb_epoch)
+    elif config.model_type == 'xgboost_lr':
+        train_xgboost_lr(config.train_seg_path,
+                         config.vectorizer_path,
+                         config.xgblr_xgb_model_path,
+                         config.xgblr_lr_model_path,
+                         config.feature_encoder_path,
+                         config.feature_type,
+                         config.col_sep)
+    else:
         train_classic(config.model_type,
                       config.train_seg_path,
                       config.pr_figure_path,
@@ -104,12 +143,3 @@ if __name__ == '__main__':
                       config.pred_thresholds,
                       config.num_classes,
                       config.feature_type)
-    else:
-        train_cnn(config.train_seg_path, config.test_seg_path, config.word_vocab_path,
-                  config.pos_vocab_path, config.label_vocab_path, config.sentence_w2v_path,
-                  config.word_vocab_start, config.pos_vocab_start, config.w2v_path, config.p2v_path,
-                  min_count=config.min_count,
-                  model_save_temp_dir=config.model_save_temp_dir,
-                  output_dir=config.output_dir,
-                  batch_size=config.batch_size,
-                  nb_epoch=config.nb_epoch)

@@ -3,7 +3,7 @@
 # Brief: 
 import json
 from time import time
-
+import numpy as np
 import jieba
 import jieba.posseg
 
@@ -11,6 +11,27 @@ label_dict = {'人类作者': 0,
               '机器作者': 1,
               '机器翻译': 2,
               '自动摘要': 3}
+
+
+class Tokenizer():
+    def __init__(self):
+        self.n = 0
+
+    def __call__(self, line):
+        tokens = []
+        for query in line.split('\t'):
+            words = [word for word in jieba.cut(query)]
+            for gram in [1, 2]:
+                for i in range(len(words) - gram + 1):
+                    tokens += ["_*_".join(words[i:i + gram])]
+        if np.random.rand() < 0.00001:
+            print(line)
+            print('=' * 20)
+            print(tokens)
+        self.n += 1
+        if self.n % 10000 == 0:
+            print(self.n, end=' ')
+        return tokens
 
 
 def parse_train_json(in_file, out_file, pos=False):
@@ -52,6 +73,7 @@ def parse_val_json(in_file, out_file, pos=False):
             f2.write(str(label) + '\t' + seg_line + "\n")
             count += 1
         print('%s to %s, size: %d' % (in_file, out_file, count))
+
 
 if __name__ == '__main__':
     # 训练集，格式：{'标签': '人类作者', '内容': '~===全国性新规===英烈保护法通过！宣扬、美化侵略战争或追刑责山东省枣庄市', 'id': 10595}

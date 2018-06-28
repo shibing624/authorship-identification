@@ -10,11 +10,24 @@ from models.reader import test_reader
 from utils.data_utils import load_vocab, load_pkl
 from utils.tensor_utils import get_ckpt_path
 from models.feature import get_feature
+from models.stack_model import XGBLR
 
 label_revserv_dict = {0: '人类作者',
                       1: '机器作者',
                       2: '机器翻译',
                       3: '自动摘要'}
+
+
+def save(label_pred, test_ids=[], pred_save_path=None):
+    if pred_save_path:
+        with open(pred_save_path, 'w', encoding='utf-8') as f:
+            for i in range(len(label_pred)):
+                if test_ids and len(test_ids) > 0:
+                    assert len(test_ids) == len(label_pred)
+                    f.write(str(test_ids[i]) + ',' + label_revserv_dict[label_pred[i]] + '\n')
+                else:
+                    f.write(str(label_pred[i]) + ',' + label_revserv_dict[label_pred[i]] + '\n')
+        print("pred_save_path:", pred_save_path)
 
 
 def infer_classic(model_save_path, test_data_path, thresholds=0.5,
@@ -31,23 +44,9 @@ def infer_classic(model_save_path, test_data_path, thresholds=0.5,
         label_pred_probas = model.predict_proba(data_feature)[:, 1]
         label_pred = label_pred_probas > thresholds
     else:
-        label_pred = model.predict(data_feature)  # same
+        label_pred = model.predict(data_feature)
     save(label_pred, test_ids, pred_save_path)
     print("finish prediction.")
-
-
-def save(label_pred, test_ids=[], pred_save_path=None):
-    if pred_save_path:
-        if test_ids and len(test_ids) > 0:
-            assert len(test_ids) == len(label_pred)
-            with open(pred_save_path, 'w', encoding='utf-8') as f:
-                for i in range(len(label_pred)):
-                    f.write(str(test_ids[i]) + ',' + label_revserv_dict[label_pred[i]] + '\n')
-        else:
-            with open(pred_save_path, 'w', encoding='utf-8') as f:
-                for i in range(len(label_pred)):
-                    f.write(str(label_pred[i]) + ',' + label_revserv_dict[label_pred[i]] + '\n')
-        print("pred_save_path:", pred_save_path)
 
 
 def infer_cnn(data_path, model_path,
@@ -72,19 +71,24 @@ def infer_cnn(data_path, model_path,
     print("finish prediction.")
 
 
+def infer_xgboost_lr(test_data_path,
+                     vectorizer_path=None, xgblr_xgb_model_path=None, xgblr_lr_model_path=None,
+                     feature_encoder_path=None, col_sep='\t', pred_save_path=None, feature_type='tfidf'):
+    # load data content
+    data_set, test_ids = data_reader(test_data_path, col_sep)
+    # data feature
+    data_feature = get_feature(data_set, feature_type, is_infer=True, infer_vectorizer_path=vectorizer_path)
+    # load model
+    model = XGBLR(xgblr_xgb_model_path, xgblr_lr_model_path, feature_encoder_path)
+    # predict
+    label_pred = model.predict(data_feature)
+    save(label_pred, test_ids, pred_save_path)
+    print("finish prediction.")
+
+
 if __name__ == "__main__":
     start_time = time.time()
-    if config.model_type != 'cnn':
-        infer_classic(config.model_save_path,
-                      config.test_seg_path,
-                      config.pred_thresholds,
-                      config.pred_save_path,
-                      config.vectorizer_path,
-                      config.col_sep,
-                      config.num_classes,
-                      config.model_type,
-                      config.feature_type)
-    else:
+    if config.model_type == 'cnn':
         infer_cnn(config.test_seg_path,
                   config.model_save_temp_dir,
                   config.word_vocab_path,
@@ -94,4 +98,23 @@ if __name__ == "__main__":
                   config.p2v_path,
                   config.batch_size,
                   config.pred_save_path)
+    elif config.model_type == 'xgboost_lr':
+        infer_xgboost_lr(config.test_seg_path,
+                         config.vectorizer_path,
+                         config.xgblr_xgb_model_path,
+                         config.xgblr_lr_model_path,
+                         config.feature_encoder_path,
+                         config.col_sep,
+                         config.pred_save_path,
+                         feature_type=config.feature_type)
+    else:
+        infer_classic(config.model_save_path,
+                      config.test_seg_path,
+                      config.pred_thresholds,
+                      config.pred_save_path,
+                      config.vectorizer_path,
+                      config.col_sep,
+                      config.num_classes,
+                      config.model_type,
+                      config.feature_type)
     print("spend time %ds." % (time.time() - start_time))

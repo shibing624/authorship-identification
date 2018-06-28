@@ -7,20 +7,48 @@ import numpy as np
 from scipy import sparse
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_selection import SelectKBest, chi2
+
+from models.reader import get_word_segment_data, get_sentence_symbol, get_char_segment_data
 from utils.data_utils import load_pkl
-from models.reader import get_contents_words, get_sentence_symbol
 
 
-def tfidf(data_set, is_infer=False):
+def tfidf_char(data_set, is_infer=False):
     """
-    Get TFIDF value
+    Get TFIDF feature by char
     :param data_set:
     :return:
     """
-    data_set = get_contents_words(data_set)
-    vectorizer = TfidfVectorizer(analyzer='char')
+    data_set = get_char_segment_data(data_set)
+    vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(1, 2), sublinear_tf=True)
+    if not is_infer:
+        data_feature = vectorizer.fit_transform(data_set)
+    else:
+        data_feature = vectorizer.transform(data_set)
+    vocab = vectorizer.vocabulary_
+    print('Vocab size:', len(vocab))
+    print('Vocab list:')
+    count = 0
+    for k, v in vectorizer.vocabulary_.items():
+        if count < 10:
+            print(k, v)
+            count += 1
+
+    print('\nIFIDF词频矩阵:')
+    print('data_feature shape:', data_feature.shape)
+    print(data_feature.toarray())
+    return data_feature, vocab
+
+
+def tfidf_word(data_set, is_infer=False):
+    """
+    Get TFIDF ngram feature by word
+    :param data_set:
+    :return:
+    """
+    data_set = get_word_segment_data(data_set)
+    vectorizer = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), sublinear_tf=True)
     if not is_infer:
         data_feature = vectorizer.fit_transform(data_set)
     else:
@@ -46,8 +74,8 @@ def tf(data_set, is_infer=False):
     :param data_set:
     :return:
     """
-    data_set = get_contents_words(data_set)
-    vectorizer = CountVectorizer(analyzer='char')
+    data_set = get_char_segment_data(data_set)
+    vectorizer = CountVectorizer(analyzer='char', ngram_range=(1, 2))
     if not is_infer:
         data_feature = vectorizer.fit_transform(data_set)
     else:
@@ -173,7 +201,7 @@ def all_human_feature(data_set):
     :param data_set:
     :return:
     """
-    tfidf_feature, vocab = tfidf(data_set)
+    tfidf_feature, vocab = tfidf_char(data_set)
     tfidf_feature_np = tfidf_feature.toarray()
     linguistics_feature, _ = linguistics(data_set)
     linguistics_feature_np = linguistics_feature.toarray()
@@ -198,18 +226,18 @@ def get_feature(data_set, feature_type='tf', is_infer=False, infer_vectorizer_pa
     if is_infer:
         if feature_type == "tf":
             vocab = load_pkl(infer_vectorizer_path)
-            vectorizer = CountVectorizer(analyzer='char', vocabulary=vocab)
+            vectorizer = CountVectorizer(analyzer='char', vocabulary=vocab, ngram_range=(1, 2))
             return vectorizer.fit_transform(data_set)
         elif feature_type == "tfidf":
             vocab = load_pkl(infer_vectorizer_path)
-            vectorizer = TfidfVectorizer(analyzer='char', vocabulary=vocab)
+            vectorizer = TfidfVectorizer(analyzer='char', vocabulary=vocab, ngram_range=(1, 2), sublinear_tf=True)
             return vectorizer.fit_transform(data_set)
         elif feature_type == "linguistics":
             data_feature, _ = linguistics(data_set)
             return data_feature
         elif feature_type == 'all':
             vocab = load_pkl(infer_vectorizer_path)
-            vectorizer = TfidfVectorizer(analyzer='char', vocabulary=vocab)
+            vectorizer = TfidfVectorizer(analyzer='char', vocabulary=vocab, ngram_range=(1, 2), sublinear_tf=True)
             tfidf_feature_np = vectorizer.fit_transform(data_set).toarray()
             linguistics_feature, _ = linguistics(data_set)
             linguistics_feature_np = linguistics_feature.toarray()
@@ -220,7 +248,7 @@ def get_feature(data_set, feature_type='tf', is_infer=False, infer_vectorizer_pa
         if feature_type == "tf":
             return tf(data_set)
         elif feature_type == "tfidf":
-            return tfidf(data_set)
+            return tfidf_word(data_set)
         elif feature_type == "linguistics":
             return linguistics(data_set)
         elif feature_type == 'all':

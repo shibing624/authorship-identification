@@ -63,6 +63,8 @@ def simple_evaluate(right_labels, pred_labels, ignore_label=None):
     rec = len(np.where(rec_pro_labels == rec_right_labels)[0]) / float(len(rec_right_labels))
     f = 0. if (pre + rec) == 0. \
         else (pre * rec * 2.) / (pre + rec)
+    print('P:', pre, '\tR:', rec, '\tF:', f)
+    print(classification_report(right_labels, pred_labels))
     return pre, rec, f
 
 

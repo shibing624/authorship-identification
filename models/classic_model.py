@@ -30,5 +30,4 @@ def get_model(model_type):
         model = LinearSVC  # 快，准确率高，val mean acc:0.84。
     elif model_type == 'mlp':
         model = MLPClassifier # 耗时，准确率高
-
     return model()

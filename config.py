@@ -4,21 +4,26 @@
 # data
 import os
 
-train_seg_path = "data/training_seg_sample.txt"  # segment of train file
-test_seg_path = "data/validation_seg_sample.txt"  # segment of test file
+train_seg_path = "data/training_seg_all_1k.txt"  # segment of train file
+test_seg_path = "data/training_seg_sample.txt"  # segment of test file
 
 sentence_symbol_path = 'data/sentence_symbol.txt'
 stop_words_path = 'data/stop_words.txt'
 
 # one of "tf, tfidf, linguistics, all", ignore when model_type="cnn"
-feature_type = 'all'
-# one of "logistic_regression, random_forest, gbdt, bayes, decision_tree, svm, knn, xgboost, mlp, cnn"
-model_type = "random_forest"
+feature_type = 'tfidf'
+# one of "logistic_regression, random_forest, gbdt, bayes, decision_tree, svm, knn, xgboost, xgboost_lr, mlp, cnn"
+model_type = "xgboost_lr"
 output_dir = "output"
 
 pr_figure_path = output_dir + "/R_P.png"  # precision recall figure
 model_save_path = output_dir + "/model_" + feature_type + "_" + model_type + ".pkl"  # save model path
 vectorizer_path = output_dir + "/vectorizer_" + feature_type + ".pkl"
+
+# xgboost_lr model
+xgblr_xgb_model_path = output_dir + "/xgblr_xgb.pkl"
+xgblr_lr_model_path = output_dir + "/xgblr_lr.pkl"
+feature_encoder_path = output_dir + "/xgblr_encoder.pkl"
 
 pred_save_path = output_dir + "/validation_seg_result.txt"  # infer data result
 col_sep = '\t'  # separate label and content of train data
