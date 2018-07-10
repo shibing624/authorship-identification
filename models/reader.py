@@ -6,8 +6,7 @@ import os
 import numpy as np
 
 from utils.data_utils import build_dict, load_pkl, dump_pkl
-from utils.data_utils import map_item2id
-from utils.data_utils import read_lines, write_vocab, load_vocab
+from utils.data_utils import map_item2id, read_lines, write_vocab, load_vocab
 
 
 def _load_data(path, col_sep='\t', word_sep=' ', pos_sep='/'):
@@ -202,29 +201,3 @@ def data_reader(path, col_sep=','):
                 contents.append(content)
                 labels.append(label)
     return contents, labels
-
-
-def get_content_words(text, word_sep=' ', pos_sep='/'):
-    content = ''
-    for word in text.split(word_sep):
-        if pos_sep in word:
-            content += word.split(pos_sep)[0] + word_sep
-    return content
-
-
-def get_word_segment_data(contents, word_sep=' ', pos_sep='/'):
-    return [get_content_words(content, word_sep, pos_sep) for content in contents]
-
-def get_char_segment_data(contents, word_sep=' ', pos_sep='/'):
-    data = []
-    for content in contents:
-        temp = ''
-        for word in content.split(word_sep):
-            if pos_sep in word:
-                temp += word.split(pos_sep)[0]
-        temp = ' '.join(list(temp))
-        data.append(temp)
-    return data
-
-def get_sentence_symbol(sentence_symbol_path='data/sentence_symbol.txt'):
-    return [word for word in open(sentence_symbol_path, 'r', encoding='utf-8').read().split()]

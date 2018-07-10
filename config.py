@@ -4,16 +4,16 @@
 # data
 import os
 
-train_seg_path = "data/training_seg_all_1k.txt"  # segment of train file
-test_seg_path = "data/training_seg_sample.txt"  # segment of test file
+train_seg_path = "data/training_new_seg.txt"  # segment of train file
+test_seg_path = "data/testing_seg.txt"  # segment of test file
 
 sentence_symbol_path = 'data/sentence_symbol.txt'
 stop_words_path = 'data/stop_words.txt'
 
-# one of "tf, tfidf, linguistics, all", ignore when model_type="cnn"
-feature_type = 'tfidf'
-# one of "logistic_regression, random_forest, gbdt, bayes, decision_tree, svm, knn, xgboost, xgboost_lr, mlp, cnn"
-model_type = "xgboost_lr"
+# one of "tfidf_char, tfidf_word, language, tfidf_char_language", ignore when model_type="cnn"
+feature_type = 'tfidf_char'
+# one of "logistic_regression, random_forest, bayes, decision_tree, svm, knn, xgboost, xgboost_lr, mlp, ensemble, stack, cnn"
+model_type = "ensemble"
 output_dir = "output"
 
 pr_figure_path = output_dir + "/R_P.png"  # precision recall figure

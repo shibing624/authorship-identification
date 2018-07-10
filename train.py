@@ -9,31 +9,31 @@ import config
 from models.classic_model import get_model
 from models.cnn_model import Model
 from models.evaluate import eval, simple_evaluate
-from models.feature import get_feature
-from models.feature import label_encoder
+from models.feature import Feature
 from models.reader import build_pos_embedding
 from models.reader import build_vocab
 from models.reader import build_word_embedding
 from models.reader import data_reader
 from models.reader import test_reader
 from models.reader import train_reader
-from models.stack_model import XGBLR
+from models.xgboost_lr_model import XGBLR
 from utils.data_utils import dump_pkl
 from utils.io_utils import clear_directory
 
 
 def train_classic(model_type, data_path=None, pr_figure_path=None,
                   model_save_path=None, vectorizer_path=None, col_sep=',',
-                  thresholds=0.5, num_classes=2, feature_type='tf'):
+                  thresholds=0.5, num_classes=2, feature_type='tfidf_char'):
     data_content, data_lbl = data_reader(data_path, col_sep)
-    # data feature
-    data_feature, vocab = get_feature(data_content, feature_type=feature_type)
-    # save data feature
-    dump_pkl(vocab, vectorizer_path, overwrite=True)
+    # init feature
+    feature = Feature(data=data_content, feature_type=feature_type, feature_vec_path=vectorizer_path)
+    # get data feature
+    data_feature = feature.get_feature()
     # label
-    data_label = label_encoder(data_lbl)
+    data_label = feature.label_encoder(data_lbl)
+
     X_train, X_val, y_train, y_val = train_test_split(
-        data_feature, data_label, test_size=0.2)
+        data_feature, data_label, test_size=0.2, random_state=0)
     model = get_model(model_type)
     # fit
     model.fit(X_train, y_train)
@@ -74,7 +74,7 @@ def train_cnn(train_seg_path=None, test_seg_path=None, word_vocab_path=None,
 
     # Division of training, development, and test set
     word_train, word_dev, pos_train, pos_dev, label_train, label_dev = train_test_split(
-        words, pos, labels, test_size=0.2, random_state=42)
+        words, pos, labels, test_size=0.2, random_state=0)
 
     # init model
     model = Model(max_len, word_emb, pos_emb, label_vocab=label_vocab)
@@ -97,16 +97,16 @@ def train_cnn(train_seg_path=None, test_seg_path=None, word_vocab_path=None,
 
 def train_xgboost_lr(data_path,
                      vectorizer_path=None, xgblr_xgb_model_path=None, xgblr_lr_model_path=None,
-                     feature_encoder_path=None, feature_type='tfidf', col_sep='\t'):
+                     feature_encoder_path=None, feature_type='tfidf_char', col_sep='\t'):
     data_content, data_lbl = data_reader(data_path, col_sep)
-    # data feature
-    data_feature, vocab = get_feature(data_content, feature_type=feature_type)
-    # save data feature
-    dump_pkl(vocab, vectorizer_path, overwrite=True)
+    # init feature
+    feature = Feature(data=data_content, feature_type=feature_type, feature_vec_path=vectorizer_path)
+    # get data feature
+    data_feature = feature.get_feature()
     # label
-    data_label = label_encoder(data_lbl)
+    data_label = feature.label_encoder(data_lbl)
     X_train, X_val, y_train, y_val = train_test_split(
-        data_feature, data_label, test_size=0.2)
+        data_feature, data_label, test_size=0.2, random_state=0)
     model = XGBLR(xgblr_xgb_model_path, xgblr_lr_model_path, feature_encoder_path)
     # fit
     model.train_model(X_train, y_train)

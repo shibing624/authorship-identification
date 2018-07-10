@@ -45,12 +45,12 @@ def build_dict(items, start=0, sort=True,
 
 def load_dict(dict_path):
     return dict((line.strip().split("\t")[0], idx)
-                for idx, line in enumerate(open(dict_path, "r").readlines()))
+                for idx, line in enumerate(open(dict_path, "r", encoding='utf-8').readlines()))
 
 
 def load_reverse_dict(dict_path):
     return dict((idx, line.strip().split("\t")[0])
-                for idx, line in enumerate(open(dict_path, "r").readlines()))
+                for idx, line in enumerate(open(dict_path, "r", encoding='utf-8').readlines()))
 
 
 def flatten_list(nest_list):
@@ -171,3 +171,31 @@ def dump_pkl(vocab, pkl_path, overwrite=False):
             # pickle.dump(vocab, f, protocol=pickle.HIGHEST_PROTOCOL)
             pickle.dump(vocab, f, protocol=0)
         print("save %s ok." % pkl_path)
+
+
+def get_content_words(text, word_sep=' ', pos_sep='/'):
+    content = ''
+    for word in text.split(word_sep):
+        if pos_sep in word:
+            content += word.split(pos_sep)[0] + word_sep
+    return content
+
+
+def get_word_segment_data(contents, word_sep=' ', pos_sep='/'):
+    return [get_content_words(content, word_sep, pos_sep) for content in contents]
+
+
+def get_char_segment_data(contents, word_sep=' ', pos_sep='/'):
+    data = []
+    for content in contents:
+        temp = ''
+        for word in content.split(word_sep):
+            if pos_sep in word:
+                temp += word.split(pos_sep)[0]
+        temp = ' '.join(list(temp))
+        data.append(temp)
+    return data
+
+
+def load_list(path='data/sentence_symbol.txt'):
+    return [word for word in open(path, 'r', encoding='utf-8').read().split()]

@@ -9,8 +9,8 @@ from models.reader import data_reader
 from models.reader import test_reader
 from utils.data_utils import load_vocab, load_pkl
 from utils.tensor_utils import get_ckpt_path
-from models.feature import get_feature
-from models.stack_model import XGBLR
+from models.feature import Feature
+from models.xgboost_lr_model import XGBLR
 
 label_revserv_dict = {0: '人类作者',
                       1: '机器作者',
@@ -32,14 +32,18 @@ def save(label_pred, test_ids=[], pred_save_path=None):
 
 def infer_classic(model_save_path, test_data_path, thresholds=0.5,
                   pred_save_path=None, vectorizer_path=None, col_sep=',',
-                  num_classes=2, model_type='svm', feature_type='tf'):
+                  num_classes=2, feature_type='tf'):
     # load model
     model = load_pkl(model_save_path)
     # load data content
     data_set, test_ids = data_reader(test_data_path, col_sep)
-    # data feature
-    data_feature = get_feature(data_set, feature_type, is_infer=True, infer_vectorizer_path=vectorizer_path)
-    if num_classes == 2 and model_type != 'svm':
+    # init feature
+    feature = Feature(data_set, feature_type=feature_type,
+                      feature_vec_path=vectorizer_path, is_infer=True)
+    # get data feature
+    data_feature = feature.get_feature()
+
+    if num_classes == 2:
         # binary classification
         label_pred_probas = model.predict_proba(data_feature)[:, 1]
         label_pred = label_pred_probas > thresholds
@@ -73,11 +77,13 @@ def infer_cnn(data_path, model_path,
 
 def infer_xgboost_lr(test_data_path,
                      vectorizer_path=None, xgblr_xgb_model_path=None, xgblr_lr_model_path=None,
-                     feature_encoder_path=None, col_sep='\t', pred_save_path=None, feature_type='tfidf'):
+                     feature_encoder_path=None, col_sep='\t', pred_save_path=None, feature_type='tfidf_char'):
     # load data content
     data_set, test_ids = data_reader(test_data_path, col_sep)
-    # data feature
-    data_feature = get_feature(data_set, feature_type, is_infer=True, infer_vectorizer_path=vectorizer_path)
+    # init feature
+    feature = Feature(data_set, feature_type=feature_type, feature_vec_path=vectorizer_path, is_infer=True)
+    # get data feature
+    data_feature = feature.get_feature()
     # load model
     model = XGBLR(xgblr_xgb_model_path, xgblr_lr_model_path, feature_encoder_path)
     # predict

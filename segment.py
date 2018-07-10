@@ -72,17 +72,19 @@ def parse_val_json(in_file, out_file, pos=False):
                 seg_line = ' '.join(jieba.cut(data))
             f2.write(str(label) + '\t' + seg_line + "\n")
             count += 1
+            if count % 1000 == 0:
+                print('count:', count)
         print('%s to %s, size: %d' % (in_file, out_file, count))
 
 
 if __name__ == '__main__':
     # 训练集，格式：{'标签': '人类作者', '内容': '~===全国性新规===英烈保护法通过！宣扬、美化侵略战争或追刑责山东省枣庄市', 'id': 10595}
-    train_file = './data/training.txt'
+    train_file = './data/training_new.txt'
     # 验证集，格式：{'id': 165484, '内容': '13日夜间到14日白天，全省各地晴或多云。}
-    val_file = './data/validation.txt'
+    val_file = './data/testing.txt'
 
-    save_train_seg_file = './data/training_seg.txt'
-    save_val_seg_file = './data/validation_seg.txt'
+    save_train_seg_file = './data/training_new_seg.txt'
+    save_val_seg_file = './data/testing_seg.txt'
 
     start_time = time()
     parse_train_json(train_file, save_train_seg_file, True)
