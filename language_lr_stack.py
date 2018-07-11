@@ -1,15 +1,15 @@
 '''linguistics_feature_lr stack for label'''
 import collections
-
-from scipy import sparse
-import pandas as pd
-import numpy as np
-import jieba
-import jieba.posseg
 import pickle
+from datetime import datetime
+
+import jieba.posseg
+import numpy as np
+import pandas as pd
+from scipy import sparse
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
-from datetime import datetime
+
 import cfg
 
 

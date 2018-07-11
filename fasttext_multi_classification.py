@@ -178,7 +178,6 @@ stack_tr = model.predict_proba(x_train, batch_size=batch_size)
 stack_te = model.predict_proba(x_test, batch_size=batch_size)
 stack_in = model.predict_proba(x_infer, batch_size=batch_size)
 stack_all = np.vstack([stack_tr, stack_te, stack_in])
-save(model.predict(x_infer, batch_size=batch_size), pred_save_path=cfg.data_path + 'fasttext_single_result.csv')
 feat = 'fasttext'
 lb = 'label'
 for l in range(stack_all.shape[1]):

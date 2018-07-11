@@ -1,10 +1,10 @@
 '''xgb-ens for education/age/gender'''
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import xgboost as xgb
+
 import cfg
-import datetime
 
 label_revserv_dict = {0: '人类作者',
                       1: '机器作者',
@@ -26,6 +26,7 @@ df_dbow = pd.read_csv(cfg.data_path + 'dbowd2v_stack_20W.csv')
 df_fasttext = pd.read_csv(cfg.data_path + 'fasttext_stack_20W.csv')
 df_mcnn = pd.read_csv(cfg.data_path + 'mcnn_stack_20W.csv')
 df_lstm = pd.read_csv(cfg.data_path + 'lstm_stack_20W.csv')
+df_rcnn = pd.read_csv(cfg.data_path + 'rcnn_stack_20W.csv')
 
 df_all = pd.read_pickle(cfg.data_path + 'all.pkl')
 
@@ -40,9 +41,9 @@ TR = df_train_count
 df_sub = pd.DataFrame()
 df_sub['Id'] = df_all.iloc[TR:]['Id']
 lb = 'label'
-print(lb)
 
-df = pd.concat([df_lr, df_svm, df_xgblr, df_dbow, df_dm, df_fasttext, df_mcnn, df_lstm], axis=1)
+df = pd.concat([df_lr, df_svm, df_xgblr, df_dbow,
+                df_dm, df_fasttext, df_mcnn, df_lstm, df_rcnn], axis=1)
 print(df.columns)
 num_class = len(pd.value_counts(y))
 print('num_class:', num_class)
