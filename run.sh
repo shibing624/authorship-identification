@@ -1,0 +1,12 @@
+python preprocess.py
+python train_d2v_model.py
+python tfidf_lr_stack.py
+python tfidf_svm_stack.py
+python tfidf_xgblr_stack.py
+python dbow_nn_stack.py
+python dm_nn_stack.py
+python fasttext_multi_classification.py
+python mcnn_classification.py
+python lstm_classification.py
+python rcnn.py
+python xgb_ens.py

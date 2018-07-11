@@ -76,3 +76,13 @@ class XGBLR(object):
         lr_feature = self.one_hot_encoder.transform(xgb_pred_mat)
         lr_pred_res = self.lr_clf.predict(lr_feature)
         return lr_pred_res
+
+    def predict_proba(self, test_x):
+        if not self.init:
+            self.load_model()
+        test_x_mat = DMatrix(test_x)
+        xgb_pred_mat = self.xgb_clf.get_booster().predict(test_x_mat, pred_leaf=True)
+
+        lr_feature = self.one_hot_encoder.transform(xgb_pred_mat)
+        lr_pred_res = self.lr_clf.predict_proba(lr_feature)
+        return lr_pred_res

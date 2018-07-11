@@ -3,7 +3,6 @@
 # Brief: 
 import json
 from time import time
-import numpy as np
 import jieba
 import jieba.posseg
 
@@ -24,13 +23,12 @@ class Tokenizer():
             for gram in [1, 2]:
                 for i in range(len(words) - gram + 1):
                     tokens += ["_*_".join(words[i:i + gram])]
-        if np.random.rand() < 0.00001:
-            print(line)
-            print('=' * 20)
-            print(tokens)
         self.n += 1
         if self.n % 10000 == 0:
             print(self.n, end=' ')
+            print(line)
+            print('=' * 20)
+            print(tokens)
         return tokens
 
 
@@ -79,11 +77,11 @@ def parse_val_json(in_file, out_file, pos=False):
 
 if __name__ == '__main__':
     # 训练集，格式：{'标签': '人类作者', '内容': '~===全国性新规===英烈保护法通过！宣扬、美化侵略战争或追刑责山东省枣庄市', 'id': 10595}
-    train_file = './data/training_new.txt'
+    train_file = './data/training.txt'
     # 验证集，格式：{'id': 165484, '内容': '13日夜间到14日白天，全省各地晴或多云。}
     val_file = './data/testing.txt'
 
-    save_train_seg_file = './data/training_new_seg.txt'
+    save_train_seg_file = './data/training_seg.txt'
     save_val_seg_file = './data/testing_seg.txt'
 
     start_time = time()
