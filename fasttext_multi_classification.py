@@ -59,7 +59,7 @@ def add_ngram(sequences, token_indice, ngram_range=2):
 
 
 # -----------------------load dataset----------------------
-df_all = pd.read_pickle(cfg.data_path + 'all_v2.pkl')
+df_all = pd.read_pickle(cfg.data_path + 'all.pkl')
 df_stack = pd.DataFrame(index=range(len(df_all)))
 
 df_train = df_all.loc[df_all['type'] == 'train']
