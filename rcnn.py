@@ -37,10 +37,10 @@ print(y_train[:10])
 print(y_train.shape)
 print(X_test.head())
 
-max_features = 20000
-maxlen = 800
-embed_size = 300
-batch_size = 512
+max_features = 80000
+maxlen = 400
+embed_size = 100
+batch_size = 256
 # epochs = 30
 epochs = 10
 
