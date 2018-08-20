@@ -3,7 +3,7 @@
 # Brief: This example demonstrates the use of fasttext for text classification
 # Bi-gram : 0.9056 test accuracy after 5 epochs.
 from datetime import datetime
-
+import pickle
 import keras
 import numpy as np
 import pandas as pd
@@ -16,6 +16,7 @@ from sklearn.model_selection import train_test_split
 
 import cfg
 
+
 def vectorize_words(words, word_idx):
     inputs = []
     for word in words:
@@ -24,7 +25,7 @@ def vectorize_words(words, word_idx):
 
 
 # -----------------------load data set----------------------
-df_all = pd.read_pickle(cfg.data_path + 'all.pkl')
+df_all = pd.read_pickle(cfg.data_path + 'hotel_all.pkl')
 df_stack = pd.DataFrame(index=range(len(df_all)))
 
 df_train = df_all.loc[df_all['type'] == 'train']
@@ -42,10 +43,10 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_
 num_classes = len(pd.value_counts(y))
 print("num_class:", num_classes)
 
-max_len = 400
+max_len = 300
 batch_size = 256
 embedding_dims = 100
-epochs = 10
+epochs = 3
 SAVE_MODEL_PATH = cfg.data_path + 'mcnn_multi_classification_model.h5'
 
 print('loading data...')
@@ -75,6 +76,9 @@ for w in x_train + x_test + x_infer:
 vocab = sorted(vocab)
 vocab_size = len(vocab) + 1
 print('Vocab size:', vocab_size, 'unique words')
+with open(cfg.data_path + 'mcnn_vocab.txt', 'w', encoding='utf-8') as f:
+    for w in vocab:
+        f.write(w + '\n')
 word_idx = dict((c, i + 1) for i, c in enumerate(vocab))
 ids_2_word = dict((value, key) for key, value in word_idx.items())
 

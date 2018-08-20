@@ -59,7 +59,7 @@ def add_ngram(sequences, token_indice, ngram_range=2):
 
 
 # -----------------------load dataset----------------------
-df_all = pd.read_pickle(cfg.data_path + 'all.pkl')
+df_all = pd.read_pickle(cfg.data_path + 'hotel_all.pkl')
 df_stack = pd.DataFrame(index=range(len(df_all)))
 
 df_train = df_all.loc[df_all['type'] == 'train']
@@ -79,10 +79,10 @@ print("num_class:", num_classes)
 
 ngram_range = 2
 max_features = 20000
-max_len = 800
+max_len = 300
 batch_size = 256
 embedding_dims = 100
-epochs = 3
+epochs = 10
 SAVE_MODEL_PATH = cfg.data_path + 'fasttext_multi_classification_model.h5'
 
 print('loading data...')

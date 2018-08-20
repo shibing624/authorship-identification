@@ -13,7 +13,7 @@ label_dict = {'人类作者': 0,
 # ----------------------load data--------------------------------
 df_tr = []
 count = 0
-for i, line in enumerate(open(cfg.data_path + 'training_new.txt', encoding='utf-8')):
+for i, line in enumerate(open(cfg.data_path + 'training.txt', encoding='utf-8')):
     row = {}
     line = line.strip()
     parts = json.loads(line)
@@ -53,13 +53,13 @@ print(df_te.shape)
 print(df_tr['label'].value_counts())
 
 df_all = pd.concat([df_tr, df_te]).fillna(0)
-df_all.to_pickle(cfg.data_path + 'all.pkl')
+df_all.to_pickle(cfg.data_path + 'all.pkl', protocol=2)
 
 df_all_1k = pd.concat([df_tr.iloc[:900], df_te.iloc[:100]]).fillna(0)
-df_all_1k.to_pickle(cfg.data_path + 'all_1k.pkl')
+df_all_1k.to_pickle(cfg.data_path + 'all_1k.pkl', protocol=2)
 
 df_all_test = pd.concat([df_tr.iloc[:10000], df_te.iloc[:100]]).fillna(0)
-df_all_test.to_pickle(cfg.data_path + 'all_10k.pkl')
+df_all_test.to_pickle(cfg.data_path + 'all_10k.pkl', protocol=2)
 
 # train count: 146341
 # test count:   78041
